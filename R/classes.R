@@ -1,0 +1,28 @@
+ruta_layer <- "ruta_layer"
+ruta_layer_input <- "ruta_layer_input"
+ruta_layer_dense <- "ruta_layer_dense"
+ruta_layer_variational <- "ruta_layer_variational"
+ruta_layer_custom <- "ruta_layer_custom"
+ruta_network <- "ruta_network"
+
+ruta_learner <- "ruta_learner"
+ruta_autoencoder <- "ruta_autoencoder"
+ruta_autoencoder_variational <- "ruta_autoencoder_variational"
+
+ruta_filter <- "ruta_filter"
+ruta_noise <- "ruta_noise"
+ruta_noise_zeros <- "ruta_noise_zeros"
+ruta_noise_ones <- "ruta_noise_ones"
+ruta_noise_saltpepper <- "ruta_noise_saltpepper"
+ruta_noise_gaussian <- "ruta_noise_gaussian"
+ruta_noise_cauchy <- "ruta_noise_cauchy"
+
+ruta_regularizer <- "ruta_regularizer"
+ruta_sparsity <- "ruta_sparsity"
+ruta_weight_decay <- "ruta_weight_decay"
+
+ruta_loss <- "ruta_loss"
+ruta_loss_named <- "ruta_loss_named"
+ruta_loss_contraction <- "ruta_loss_contraction"
+ruta_loss_correntropy <- "ruta_loss_correntropy"
+ruta_loss_variational <- "ruta_loss_variational"
