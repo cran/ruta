@@ -93,26 +93,27 @@ print.ruta_autoencoder <- function(x, ...) {
 #' @seealso `\link{train}`
 #' @export
 is_trained <- function(learner) {
-  !is_null(learner$models)
+  !is.null(learner$models)
 }
 
 #' Extract Keras models from an autoencoder wrapper
 #'
-#' @param learner Object of class \code{"ruta_autoencoder"}. Needs to have a member
+#' @param x Object of class \code{"ruta_autoencoder"}. Needs to have a member
 #'   `input_shape` indicating the number of attributes of the input data
 #' @param encoder_end Name of the Keras layer where the encoder ends
 #' @param decoder_start Name of the Keras layer where the decoder starts
 #' @param weights_file The name of a hdf5 weights file in order to load from a trained model
+#' @param ... Unused
 #' @return A list with several Keras models:
 #' - `autoencoder`: model from the input layer to the output layer
 #' - `encoder`: model from the input layer to the encoding layer
 #' - `decoder`: model from the encoding layer to the output layer
-#' @import purrr
+#' @importFrom purrr detect_index
 #' @seealso `\link{autoencoder}`
 #' @export
-to_keras.ruta_autoencoder <- function(learner, encoder_end = "encoding", decoder_start = "encoding", weights_file = NULL) {
+to_keras.ruta_autoencoder <- function(x, encoder_end = "encoding", decoder_start = "encoding", weights_file = NULL, ...) {
   # end-to-end autoencoder
-  model <- to_keras(learner$network, learner$input_shape)
+  model <- to_keras(x$network, x$input_shape)
 
   # load HDF5 weights if required
   if (!is.null(weights_file)) {
@@ -147,6 +148,32 @@ to_keras.ruta_autoencoder <- function(learner, encoder_end = "encoding", decoder
   )
 }
 
+#' Configure a learner object with the associated Keras objects
+#'
+#' This function builds all the necessary Keras objects in order
+#' to manipulate internals of the models or train them. Users won't generally
+#' need to call this function, since \code{train} will do so automatically.
+#' @param learner A \code{"ruta_autoencoder"} object
+#' @param input_shape An integer describing the number of variables in the input data
+#' @return Same learner passed as parameter, with new members \code{input_shape},
+#'  \code{models} and \code{keras_loss}
+#' @importFrom tensorflow tf
+#' @export
+configure <- function(learner, input_shape) {
+  tensorflow::tf$compat$v1$disable_eager_execution()
+  if (is.null(learner$input_shape) || learner$input_shape != input_shape) {
+    learner$input_shape <- input_shape
+    learner$models <- NULL
+    learner$keras_loss <- NULL
+  }
+  if (is.null(learner$models))
+    learner$models <- to_keras(learner)
+  if (is.null(learner$keras_loss))
+    learner$keras_loss <- to_keras(learner$loss, learner)
+
+  invisible(learner)
+}
+
 
 #' Train a learner object with data
 #'
@@ -170,35 +197,37 @@ to_keras.ruta_autoencoder <- function(learner, encoder_end = "encoding", decoder
 #' @examples
 #' # Minimal example ================================================
 #' \donttest{
-#' iris_model <- train(autoencoder(2), as.matrix(iris[, 1:4]))
+#' if (interactive() && keras::is_keras_available())
+#'   iris_model <- train(autoencoder(2), as.matrix(iris[, 1:4]))
 #' }
 #'
 #' # Simple example with MNIST ======================================
 #' \donttest{
 #' library(keras)
+#' if (interactive() && keras::is_keras_available()) {
+#'   # Load and normalize MNIST
+#'   mnist = dataset_mnist()
+#'   x_train <- array_reshape(
+#'     mnist$train$x, c(dim(mnist$train$x)[1], 784)
+#'   )
+#'   x_train <- x_train / 255.0
+#'   x_test <- array_reshape(
+#'     mnist$test$x, c(dim(mnist$test$x)[1], 784)
+#'   )
+#'   x_test <- x_test / 255.0
 #'
-#' # Load and normalize MNIST
-#' mnist = dataset_mnist()
-#' x_train <- array_reshape(
-#'   mnist$train$x, c(dim(mnist$train$x)[1], 784)
-#' )
-#' x_train <- x_train / 255.0
-#' x_test <- array_reshape(
-#'   mnist$test$x, c(dim(mnist$test$x)[1], 784)
-#' )
-#' x_test <- x_test / 255.0
-#'
-#' # Autoencoder with layers: 784-256-36-256-784
-#' learner <- autoencoder(c(256, 36), "binary_crossentropy")
-#' train(
-#'   learner,
-#'   x_train,
-#'   epochs = 1,
-#'   optimizer = "rmsprop",
-#'   batch_size = 64,
-#'   validation_data = x_test,
-#'   metrics = list("binary_accuracy")
-#' )
+#'   # Autoencoder with layers: 784-256-36-256-784
+#'   learner <- autoencoder(c(256, 36), "binary_crossentropy")
+#'   train(
+#'     learner,
+#'     x_train,
+#'     epochs = 1,
+#'     optimizer = "rmsprop",
+#'     batch_size = 64,
+#'     validation_data = x_test,
+#'     metrics = list("binary_accuracy")
+#'   )
+#' }
 #' }
 #' @seealso `\link{autoencoder}`
 #' @export
@@ -208,12 +237,10 @@ train.ruta_autoencoder <- function(
   validation_data = NULL,
   metrics = NULL,
   epochs = 20,
-  optimizer = keras::optimizer_rmsprop(),
+  optimizer = "rmsprop",
   ...) {
-  learner$input_shape <- dim(data)[-1]
-  learner$models <- to_keras(learner)
-
-  loss_f <- learner$loss %>% to_keras(learner)
+  learner <- configure(learner, dim(data)[-1])
+  loss_f <- learner$keras_loss
 
   if (is.function(loss_f)) {
     keras::compile(
@@ -231,12 +258,6 @@ train.ruta_autoencoder <- function(
       metrics = metrics
     )
   }
-
-  # input_data <- if (is.null(learner$filter)) {
-  #   data
-  # } else {
-  #   apply_filter(learner$filter, data)
-  # }
 
   if (!is.null(validation_data)) {
     validation_data <- list(validation_data, validation_data)
@@ -289,14 +310,15 @@ train.ruta_autoencoder <- function(
 #' inputs <- as.matrix(iris[, 1:4])
 #'
 #' \donttest{
-#' # Train a basic autoencoder and generate a 2-variable encoding
-#' encoded <- autoencode(inputs, 2)
+#' if (interactive() && keras::is_keras_available()) {
+#'   # Train a basic autoencoder and generate a 2-variable encoding
+#'   encoded <- autoencode(inputs, 2)
 #'
-#' # Train a contractive autoencoder with tanh activation
-#' encoded <- autoencode(inputs, 2, type = "contractive", activation = "tanh")
+#'   # Train a contractive autoencoder with tanh activation
+#'   encoded <- autoencode(inputs, 2, type = "contractive", activation = "tanh")
+#' }
 #' }
 #' @seealso `\link{autoencoder}`
-#' @import purrr
 #' @export
 autoencode <- function(data, dim, type = "basic", activation = "linear", epochs = 20) {
   autoencoder_f <- switch(tolower(type),
@@ -308,8 +330,8 @@ autoencode <- function(data, dim, type = "basic", activation = "linear", epochs 
                           variational = autoencoder_variational,
                           stop("The requested type of autoencoder does not exist"))
 
-  autoencoder_f(input() + dense(dim, activation = activation) + output()) %>%
-    train(data, epochs = epochs) %>%
+  autoencoder_f(input() + dense(dim, activation = activation) + output()) |>
+    train(data, epochs = epochs) |>
     encode(data)
 }
 

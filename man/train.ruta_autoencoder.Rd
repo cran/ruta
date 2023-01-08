@@ -5,9 +5,15 @@
 \alias{train}
 \title{Train a learner object with data}
 \usage{
-\method{train}{ruta_autoencoder}(learner, data, validation_data = NULL,
-  metrics = NULL, epochs = 20,
-  optimizer = keras::optimizer_rmsprop(), ...)
+\method{train}{ruta_autoencoder}(
+  learner,
+  data,
+  validation_data = NULL,
+  metrics = NULL,
+  epochs = 20,
+  optimizer = "rmsprop",
+  ...
+)
 
 train(learner, ...)
 }
@@ -20,14 +26,14 @@ train(learner, ...)
 for training but the loss measure and any metrics will be computed against it}
 
 \item{metrics}{Optional list of metrics which will evaluate the model but
-won't be optimized. See \code{keras::\link[keras]{compile}}}
+won't be optimized. See \verb{keras::\link[keras]\{compile\}}}
 
 \item{epochs}{The number of times data will pass through the network}
 
 \item{optimizer}{The optimizer to be used in order to train the model, can
 be any optimizer object defined by Keras (e.g. \code{keras::optimizer_adam()})}
 
-\item{...}{Additional parameters for \code{keras::\link[keras]{fit}}. Some useful parameters:
+\item{...}{Additional parameters for \verb{keras::\link[keras]\{fit\}}. Some useful parameters:
 \itemize{
 \item \code{batch_size} The number of examples to be grouped for each gradient update.
 Use a smaller batch size for more frequent weight updates or a larger one for
@@ -45,37 +51,39 @@ and trains it with the input data.
 \examples{
 # Minimal example ================================================
 \donttest{
-iris_model <- train(autoencoder(2), as.matrix(iris[, 1:4]))
+if (interactive() && keras::is_keras_available())
+  iris_model <- train(autoencoder(2), as.matrix(iris[, 1:4]))
 }
 
 # Simple example with MNIST ======================================
 \donttest{
 library(keras)
+if (interactive() && keras::is_keras_available()) {
+  # Load and normalize MNIST
+  mnist = dataset_mnist()
+  x_train <- array_reshape(
+    mnist$train$x, c(dim(mnist$train$x)[1], 784)
+  )
+  x_train <- x_train / 255.0
+  x_test <- array_reshape(
+    mnist$test$x, c(dim(mnist$test$x)[1], 784)
+  )
+  x_test <- x_test / 255.0
 
-# Load and normalize MNIST
-mnist = dataset_mnist()
-x_train <- array_reshape(
-  mnist$train$x, c(dim(mnist$train$x)[1], 784)
-)
-x_train <- x_train / 255.0
-x_test <- array_reshape(
-  mnist$test$x, c(dim(mnist$test$x)[1], 784)
-)
-x_test <- x_test / 255.0
-
-# Autoencoder with layers: 784-256-36-256-784
-learner <- autoencoder(c(256, 36), "binary_crossentropy")
-train(
-  learner,
-  x_train,
-  epochs = 1,
-  optimizer = "rmsprop",
-  batch_size = 64,
-  validation_data = x_test,
-  metrics = list("binary_accuracy")
-)
+  # Autoencoder with layers: 784-256-36-256-784
+  learner <- autoencoder(c(256, 36), "binary_crossentropy")
+  train(
+    learner,
+    x_train,
+    epochs = 1,
+    optimizer = "rmsprop",
+    batch_size = 64,
+    validation_data = x_test,
+    metrics = list("binary_accuracy")
+  )
+}
 }
 }
 \seealso{
-\code{\link{autoencoder}}
+\verb{\link{autoencoder}}
 }

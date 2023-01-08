@@ -5,8 +5,12 @@
 \alias{load_from}
 \title{Save and load Ruta models}
 \usage{
-save_as(learner, file = paste0(substitute(learner), ".tar.gz"), dir,
-  compression = "gzip")
+save_as(
+  learner,
+  file = paste0(substitute(learner), ".tar.gz"),
+  dir,
+  compression = "gzip"
+)
 
 load_from(file)
 }
@@ -19,7 +23,7 @@ saved. In \code{load}, path to the saved model}
 \item{dir}{Directory where to save the file. Use \code{"."} to save in the current
 working directory or \code{tempdir()} to use a temporary one}
 
-\item{compression}{Type of compression to be used, for R function \code{\link{tar}}}
+\item{compression}{Type of compression to be used, for R function \verb{\link{tar}}}
 }
 \value{
 \code{save_as} returns the filename where the model has been saved,
@@ -29,18 +33,19 @@ working directory or \code{tempdir()} to use a temporary one}
 Functions to save a trained or untrained Ruta learner into a file and load it
 }
 \examples{
-library(purrr)
 
 x <- as.matrix(iris[, 1:4])
 
 \donttest{
-# Save a trained model
-saved_file <-
-  autoencoder(2) \%>\%
-  train(x) \%>\%
-  save_as("my_model.tar.gz", dir = tempdir())
+if (interactive() && keras::is_keras_available()) {
+  # Save a trained model
+  saved_file <-
+    autoencoder(2) |>
+    train(x) |>
+    save_as("my_model.tar.gz", dir = tempdir())
 
-# Load and use the model
-encoded <- load_from(saved_file) \%>\% encode(x)
+  # Load and use the model
+  encoded <- load_from(saved_file) |> encode(x)
+}
 }
 }

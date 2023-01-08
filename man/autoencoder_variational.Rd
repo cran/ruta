@@ -4,8 +4,11 @@
 \alias{autoencoder_variational}
 \title{Build a variational autoencoder}
 \usage{
-autoencoder_variational(network, loss = "binary_crossentropy",
-  auto_transform_network = TRUE)
+autoencoder_variational(
+  network,
+  loss = "binary_crossentropy",
+  auto_transform_network = TRUE
+)
 }
 \arguments{
 \item{network}{Network architecture as a \code{"ruta_network"} object (or coercible)}
@@ -37,15 +40,16 @@ learner <- autoencoder_variational(network, loss = "binary_crossentropy")
 \references{
 \itemize{
 \item \href{https://arxiv.org/abs/1312.6114}{Auto-Encoding Variational Bayes}
-\item \href{http://blog.fastforwardlabs.com/2016/08/22/under-the-hood-of-the-variational-autoencoder-in.html}{Under the Hood of the Variational Autoencoder (in Prose and Code)}
-\item \href{https://keras.rstudio.com/articles/examples/variational_autoencoder.html}{Keras example: Variational autoencoder}
+\item \href{https://blog.fastforwardlabs.com/2016/08/22/under-the-hood-of-the-variational-autoencoder-in.html}{Under the Hood of the Variational Autoencoder (in Prose and Code)}
+\item \href{https://github.com/rstudio/keras/blob/main/vignettes/examples/variational_autoencoder.R}{Keras example: Variational autoencoder}
 }
 }
 \seealso{
-Other autoencoder variants: \code{\link{autoencoder_contractive}},
-  \code{\link{autoencoder_denoising}},
-  \code{\link{autoencoder_robust}},
-  \code{\link{autoencoder_sparse}},
-  \code{\link{autoencoder}}
+Other autoencoder variants: 
+\code{\link{autoencoder_contractive}()},
+\code{\link{autoencoder_denoising}()},
+\code{\link{autoencoder_robust}()},
+\code{\link{autoencoder_sparse}()},
+\code{\link{autoencoder}()}
 }
 \concept{autoencoder variants}

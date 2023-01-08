@@ -20,16 +20,15 @@ knitr::opts_chunk$set(
 Ruta allows creating the neural architecture of autoencoders in several ways. The easiest way is to use an integer vector describing the number of units of each hidden layer in the encoder:
 
 ```{r int}
-library(magrittr)
 library(ruta)
 
 net <- c(1000, 100)
-net %>% as_network() %>% print()
+net |> as_network() |> print()
 ```
 
 The input and output layers have an undetermined size until training data is used and the autoencoder is converted onto a Keras model.
 
-By using [separate functions](/reference/#section-neural-network-architecture) for each layer type, one may define the activations at the output of each layer:
+By using [separate functions](https://ruta.software/reference/#section-neural-network-architecture) for each layer type, one may define the activations at the output of each layer:
 
 ```{r structure}
 net <- 
